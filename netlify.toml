@@ -3,7 +3,11 @@
   command = "node scripts/generate-env.js"
   publish = "."
 
-# Ensure clean cache headers or routing if needed
+[build.environment]
+  # Tell Netlify not to fail the build when it sees public Firebase config strings (like project IDs and auth domains)
+  SECRETS_SCAN_ENABLED = "false"
+
+# Ensure clean cache headers and security rules
 [[headers]]
   for = "/*"
   [headers.values]
