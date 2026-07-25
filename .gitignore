@@ -1,5 +1,7 @@
-# Firebase local config
+# Environment and Secrets
+.env
 env.js
+js/env.js
 
 # Dependencies
 node_modules/

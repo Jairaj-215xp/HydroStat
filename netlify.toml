@@ -1,0 +1,11 @@
+[build]
+  # When deployed to Netlify, run our generator script to turn your env variables into js/env.js!
+  command = "node scripts/generate-env.js"
+  publish = "."
+
+# Ensure clean cache headers or routing if needed
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
