@@ -1,14 +1,14 @@
-<div align="center">
-  <h1>HydroHub 🔵⚗️</h1>
+﻿<div align="center">
+  <h1>HydroStat 🔵⚗️</h1>
   <p><b>The ultimate global hub for hydrogen fuel information, daily news, ideas, and research.</b></p>
   <p>
-    <a href="https://github.com/Jairaj-215xp/HydroHub">Live Repository</a>
+    <a href="https://github.com/Jairaj-215xp/HydroStat">Live Repository</a>
   </p>
 </div>
 
 ---
 
-HydroHub is an expansive, modern web platform dedicated to accelerating the clean energy transition. It makes hydrogen fuel knowledge accessible to everyone — from industry professionals and researchers to students and clean energy enthusiasts.
+HydroStat is an expansive, modern web platform dedicated to accelerating the clean energy transition. It makes hydrogen fuel knowledge accessible to everyone — from industry professionals and researchers to students and clean energy enthusiasts.
 
 ## ✨ Features
 
@@ -25,7 +25,7 @@ HydroHub is an expansive, modern web platform dedicated to accelerating the clea
 
 ## 🛠️ Tech Stack
 
-HydroHub leverages a lightweight but powerful stack to deliver a fast, app-like experience without the bloat of heavy front-end frameworks.
+HydroStat leverages a lightweight but powerful stack to deliver a fast, app-like experience without the bloat of heavy front-end frameworks.
 
 | Layer            | Technology |
 |-------------------|--------------------------------------|
@@ -41,7 +41,7 @@ HydroHub leverages a lightweight but powerful stack to deliver a fast, app-like 
 The project is cleanly organized into modular directories for scalability:
 
 ```text
-HydroHub/
+HydroStat/
 ├── index.html                  # Landing page (Basics, Hub, News, Research, Contact)
 ├── account.html                # User dashboard (Profile, Saved Content, etc.)
 ├── bot-chats.html              # Dedicated page to view saved AI transcripts
@@ -85,8 +85,8 @@ HydroHub/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Jairaj-215xp/HydroHub.git
-   cd HydroHub
+   git clone https://github.com/Jairaj-215xp/HydroStat.git
+   cd HydroStat
    ```
 
 2. **Configure Firebase**
@@ -124,5 +124,6 @@ Created and maintained by **Jairaj Sapkal**.
 ---
 
 <div align="center">
-  <i>HydroHub — Accelerating the Clean Energy Transition, one molecule at a time. ⚡</i>
+  <i>HydroStat — Accelerating the Clean Energy Transition, one molecule at a time. ⚡</i>
 </div>
+

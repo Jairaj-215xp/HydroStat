@@ -1,4 +1,4 @@
-import { auth, db } from './firebase-config.js';
+﻿import { auth, db } from './firebase-config.js';
 import { openDocumentViewer } from './ui-utils.js';
 import { onAuthStateChanged, updatePassword, deleteUser, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
@@ -114,7 +114,7 @@ async function loadProfile(user) {
             const charCode = user.uid ? (user.uid.charCodeAt(0) + user.uid.charCodeAt(user.uid.length - 1)) : Math.floor(Math.random() * 360);
             const hueDeg = (charCode * 45) % 360; 
             
-            avatarPreview.src = 'Default%20logo.png';
+            avatarPreview.src = 'assets/Default%20logo.png';
             avatarPreview.style.filter = `hue-rotate(${hueDeg}deg) saturate(1.5)`;
         }
 
@@ -234,12 +234,12 @@ btnAvatarRemove.addEventListener('click', async () => {
         const charCode = currentUser.uid ? (currentUser.uid.charCodeAt(0) + currentUser.uid.charCodeAt(currentUser.uid.length - 1)) : Math.floor(Math.random() * 360);
         const hueDeg = (charCode * 45) % 360; 
         
-        avatarPreview.src = 'Default%20logo.png';
+        avatarPreview.src = 'assets/Default%20logo.png';
         avatarPreview.style.filter = `hue-rotate(${hueDeg}deg) saturate(1.5)`;
         
         const navAvatar = document.querySelector('.nav-avatar');
         if (navAvatar) {
-            navAvatar.src = 'Default%20logo.png';
+            navAvatar.src = 'assets/Default%20logo.png';
             navAvatar.style.filter = `hue-rotate(${hueDeg}deg) saturate(1.5)`;
         }
     } catch (err) {
@@ -930,7 +930,7 @@ if (btnExportData) {
             const a = document.createElement("a");
             a.style.display = "none";
             a.href = downloadUrl;
-            a.download = `HydroHub_Data_${currentUser.uid}.zip`;
+            a.download = `HydroStat_Data_${currentUser.uid}.zip`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(downloadUrl);
@@ -957,3 +957,4 @@ if (closeTranscriptModal) {
         document.getElementById('bot-transcript-modal').style.display = 'none';
     });
 }
+

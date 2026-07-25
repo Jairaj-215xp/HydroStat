@@ -1,4 +1,4 @@
-if ('scrollRestoration' in history) {
+﻿if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
 }
 
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const requestBody = {
             system_instruction: {
-                parts: { text: "You are an AI assistant specifically built for a website called HydroHub. Your ONLY purpose is to answer questions related to hydrogen fuel, clean energy, fuel cells, and related technologies. Keep your answers extremely short, crisp, and easy to understand (1-3 sentences max). Most importantly: BE DEFINITIVE AND GIVE CONCRETE NUMBERS. Do NOT hedge or say 'it varies', 'it depends', or 'costs vary'. Instead, provide realistic average numerical estimates, prices, or ranges based on the US/Global market in 2024. If the user asks for a rate or cost, give them an actual dollar amount. If the user asks about ANYTHING else (e.g. coding, general history, recipes, math, etc), politely decline and remind them you can only answer questions about hydrogen and clean energy." }
+                parts: { text: "You are an AI assistant specifically built for a website called HydroStat. Your ONLY purpose is to answer questions related to hydrogen fuel, clean energy, fuel cells, and related technologies. Keep your answers extremely short, crisp, and easy to understand (1-3 sentences max). Most importantly: BE DEFINITIVE AND GIVE CONCRETE NUMBERS. Do NOT hedge or say 'it varies', 'it depends', or 'costs vary'. Instead, provide realistic average numerical estimates, prices, or ranges based on the US/Global market in 2024. If the user asks for a rate or cost, give them an actual dollar amount. If the user asks about ANYTHING else (e.g. coding, general history, recipes, math, etc), politely decline and remind them you can only answer questions about hydrogen and clean energy." }
             },
             contents: chatHistory
         };
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!researchContainer) return;
 
         // Fetching 6 recent papers about hydrogen fuel and green energy using OpenAlex API (Polite Pool)
-        const API_URL = 'https://api.openalex.org/works?search=hydrogen%20fuel%20cell&per-page=6&sort=publication_date:desc&mailto=contact@hydrohub.com';
+        const API_URL = 'https://api.openalex.org/works?search=hydrogen%20fuel%20cell&per-page=6&sort=publication_date:desc&mailto=contact@hydrostat.com';
 
         try {
             researchContainer.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-secondary);">Loading latest academic papers...</p>';
@@ -464,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="research-footer">
                             <span class="research-date">Published: ${pubYear}</span>
-                            <a href="${readLink}" target="_blank" class="btn-outline">Read Paper <span>â†—</span></a>
+                            <a href="${readLink}" target="_blank" class="btn-outline">Read Paper <span>&nearr;</span></a>
                         </div>
                     `;
                     
@@ -627,4 +627,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 

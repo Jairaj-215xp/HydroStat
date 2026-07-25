@@ -1,4 +1,4 @@
-import { auth, db } from './firebase-config.js';
+﻿import { auth, db } from './firebase-config.js';
 import { 
   onAuthStateChanged, 
   createUserWithEmailAndPassword, 
@@ -93,6 +93,8 @@ function getFriendlyErrorMessage(error) {
   if (code === 'auth/invalid-email') return 'The email address is not valid.';
   if (code === 'auth/too-many-requests') return 'Too many failed attempts. Please try again later.';
   if (code === 'auth/network-request-failed') return 'Network error. Please check your internet connection.';
+  if (code === 'auth/unauthorized-domain') return 'Google Sign-In blocked: Your Netlify domain is not added to Firebase Authorized Domains yet.';
+  if (code === 'auth/popup-closed-by-user') return 'Google Sign-In popup was closed before completing.';
   
   // Strip the "Firebase: " prefix from unknown errors for a cleaner look
   let msg = error.message || 'An unknown error occurred.';
@@ -150,7 +152,7 @@ authSwitchBtn.addEventListener('click', (e) => {
     authForgotContainer.style.display = 'block';
   } else {
     authTitle.innerText = 'Create Account';
-    authSubtitle.innerText = 'Join the HydrogenHub research community.';
+    authSubtitle.innerText = 'Join the HydroStat research community.';
     btnSubmitAuth.innerText = 'Sign Up';
     authSwitchPrompt.innerText = "Already have an account?";
     authSwitchBtn.innerText = 'Log In';
@@ -298,7 +300,7 @@ onAuthStateChanged(auth, (user) => {
     const charCode = user.uid ? (user.uid.charCodeAt(0) + user.uid.charCodeAt(user.uid.length - 1)) : Math.floor(Math.random() * 360);
     const hueDeg = (charCode * 45) % 360; // Multiply to spread out the color spectrum
     
-    let avatarUrl = 'Default%20logo.png';
+    let avatarUrl = 'assets/Default%20logo.png';
     let filterStyle = `filter: hue-rotate(${hueDeg}deg) saturate(1.5);`;
     
     if (user.photoURL && user.photoURL.includes('cloudinary.com')) {
@@ -354,5 +356,6 @@ onAuthStateChanged(auth, (user) => {
     });
   }
 });
+
 
 
