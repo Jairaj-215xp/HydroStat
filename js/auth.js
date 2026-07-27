@@ -1,4 +1,5 @@
-﻿import { auth, db } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
+import './search.js';
 import { 
   onAuthStateChanged, 
   createUserWithEmailAndPassword, 

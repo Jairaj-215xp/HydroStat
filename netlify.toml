@@ -7,9 +7,16 @@
   # Tell Netlify not to fail the build when it sees public Firebase config strings (like project IDs and auth domains)
   SECRETS_SCAN_ENABLED = "false"
 
+# Rewrite rule for public researcher handle profiles
+[[redirects]]
+  from = "/@*"
+  to = "/profile.html?handle=:splat"
+  status = 200
+
 # Ensure clean cache headers and security rules
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
+

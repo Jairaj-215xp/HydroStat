@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Researcher Profile | HydroStat</title>
+    <meta name="description" content="View HydroStat community researcher profile, academic contributions, and published hydrogen fuel papers.">
+    <link rel="stylesheet" href="css/index.css">
+    <style>
+      .profile-banner {
+        width: 100%;
+        height: 220px;
+        background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(168, 85, 247, 0.25) 50%, rgba(59, 130, 246, 0.3) 100%), var(--bg-card);
+        border-radius: 20px 20px 0 0;
+        position: relative;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .profile-card-container {
+        max-width: 900px;
+        margin: -100px auto 4rem auto;
+        position: relative;
+        z-index: 10;
+        padding: 0 1rem;
+      }
+      .profile-main-card {
+        background: rgba(18, 24, 38, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        overflow: hidden;
+      }
+      .profile-header-content {
+        padding: 2.5rem 2.5rem 2rem 2.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        align-items: flex-end;
+        margin-top: -60px;
+      }
+      .profile-avatar-large {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        border: 4px solid #121826;
+        box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+        object-fit: cover;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .profile-user-info {
+        flex: 1;
+        min-width: 260px;
+      }
+      .profile-name {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+      }
+      .profile-handle-badge {
+        font-size: 1rem;
+        background: rgba(0, 255, 255, 0.15);
+        color: var(--accent-cyan, #00ffff);
+        border: 1px solid rgba(0, 255, 255, 0.4);
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+      .profile-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+        margin-top: 0.8rem;
+      }
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .profile-bio-sec {
+        padding: 0 2.5rem 2rem 2.5rem;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .profile-social-links {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+      }
+      .social-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.4rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.25s ease;
+      }
+      .social-pill:hover {
+        background: rgba(0, 255, 255, 0.1);
+        border-color: var(--accent-cyan, #00ffff);
+        color: var(--accent-cyan, #00ffff);
+        transform: translateY(-2px);
+      }
+      .btn-follow {
+        background: linear-gradient(135deg, var(--accent-cyan, #00ffff) 0%, #0088ff 100%);
+        color: #0d121c;
+        font-weight: 700;
+        border: none;
+        padding: 0.55rem 1.4rem;
+        border-radius: 25px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.35);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .btn-follow:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 6px 22px rgba(0, 255, 255, 0.5);
+      }
+      .btn-follow:active {
+        transform: translateY(1px) scale(0.98);
+      }
+      .btn-follow.following {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(0, 255, 255, 0.4);
+        color: var(--accent-cyan, #00ffff);
+        box-shadow: none;
+      }
+      .btn-follow.following:hover {
+        background: rgba(255, 77, 77, 0.15);
+        border-color: #ff6666;
+        color: #ff6666;
+        box-shadow: 0 4px 15px rgba(255, 77, 77, 0.2);
+      }
+      .profile-content-body {
+        padding: 2.5rem;
+      }
+      .section-subtitle {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .research-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+      .paper-preview-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        text-decoration: none;
+        color: inherit;
+      }
+      .paper-preview-card:hover {
+        background: rgba(0, 255, 255, 0.06);
+        border-color: rgba(0, 255, 255, 0.4);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      .paper-card-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--accent-cyan, #00ffff);
+        margin-bottom: 0.6rem;
+        line-height: 1.4;
+      }
+      .paper-card-desc {
+        font-size: 0.92rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 1.2rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .paper-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.5);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 0.8rem;
+      }
+    </style>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body class="theme-dark">
+
+    <div class="bg-gradient"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Hydro<span>Stat</span></a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#hub">Global Info</a></li>
+                <li><a href="index.html#news">News</a></li>
+                <li><a href="info.html">SimLab 🧪</a></li>
+                <li class="dropdown">
+                    <a href="javascript:void(0)" class="dropbtn">Research ▾</a>
+                    <div class="dropdown-content">
+                        <a href="index.html#research">Academic Research</a>
+                        <a href="community-research.html">Community Research</a>
+                    </div>
+                </li>
+                <li><a href="forum.html">Q&A Forum</a></li>
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li id="nav-auth-item" style="visibility: hidden;"><a href="#" id="nav-login-btn" style="color: var(--accent-cyan); font-weight: bold;">Login / Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 100px;">
+      <div id="profile-loading" style="text-align: center; padding: 6rem 1rem; color: var(--text-secondary);">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+        <p style="font-size: 1.2rem; color: #fff;">Loading researcher profile...</p>
+      </div>
+
+      <div id="profile-not-found" style="display: none; text-align: center; padding: 6rem 1rem;">
+        <div style="font-size: 3.5rem; margin-bottom: 1rem;">🔍</div>
+        <h2 style="color: #fff; margin-bottom: 0.5rem;">Researcher Not Found</h2>
+        <p style="color: rgba(255, 255, 255, 0.6); max-width: 450px; margin: 0 auto 2rem auto;">We couldn't find a community researcher with that username or account ID in the HydroStat database.</p>
+        <a href="community-research.html" class="btn btn-primary">Browse Community Research</a>
+      </div>
+
+      <div id="profile-view-container" class="profile-card-container" style="display: none;">
+        <div class="profile-main-card">
+          <div class="profile-banner"></div>
+          
+          <div class="profile-header-content">
+            <img id="profile-avatar-img" src="assets/Default%20logo.png" alt="Researcher Avatar" class="profile-avatar-large" onerror="this.src='assets/Default%20logo.png'" referrerpolicy="no-referrer">
+            <div class="profile-user-info">
+              <div class="profile-name" style="justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                  <span id="profile-display-name">Researcher</span>
+                  <span id="profile-handle-pill" class="profile-handle-badge" style="display: none;">@handle</span>
+                </div>
+                <div id="profile-actions" style="display: flex; gap: 0.8rem; align-items: center; margin-left: auto;">
+                  <button id="btn-follow" class="btn-follow" style="display: none;">
+                    <span id="follow-icon" style="font-weight: 900; font-size: 1.1rem;">+</span> <span id="follow-text">Follow</span>
+                  </button>
+                  <a href="account.html" id="btn-edit-my-profile" class="btn btn-outline" style="display: none; border-radius: 25px; padding: 0.55rem 1.3rem; font-size: 0.9rem; text-decoration: none;">
+                    ⚙️ Edit Profile
+                  </a>
+                </div>
+              </div>
+              <div class="profile-meta-row">
+                <span id="meta-university" class="meta-item" style="display: none;">🏛️ <span id="text-university"></span></span>
+                <span id="meta-field" class="meta-item" style="display: none;">🔬 <span id="text-field"></span></span>
+                <span id="meta-location" class="meta-item" style="display: none;">📍 <span id="text-location"></span></span>
+              </div>
+              <div class="profile-stats-row" style="display: flex; gap: 1.8rem; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px dashed rgba(255, 255, 255, 0.12);">
+                <div style="font-size: 0.95rem;">
+                  <strong id="stat-followers" style="font-size: 1.2rem; color: #fff; font-weight: 700;">0</strong> 
+                  <span style="color: rgba(255, 255, 255, 0.6);">Followers</span>
+                </div>
+                <div style="font-size: 0.95rem;">
+                  <strong id="stat-following" style="font-size: 1.2rem; color: #fff; font-weight: 700;">0</strong> 
+                  <span style="color: rgba(255, 255, 255, 0.6);">Following</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-bio-sec">
+            <p id="profile-bio-text" style="margin-bottom: 0;">No biography provided yet.</p>
+            
+            <div id="profile-social-row" class="profile-social-links" style="display: none;">
+              <a href="#" id="link-github" target="_blank" class="social-pill" style="display: none;">💻 GitHub ↗</a>
+              <a href="#" id="link-linkedin" target="_blank" class="social-pill" style="display: none;">🔗 LinkedIn ↗</a>
+              <a href="#" id="link-orcid" target="_blank" class="social-pill" style="display: none;">📚 ORCID ↗</a>
+              <a href="#" id="link-website" target="_blank" class="social-pill" style="display: none;">🌐 Website ↗</a>
+            </div>
+          </div>
+
+          <div class="profile-content-body">
+            <div class="section-subtitle">
+              <span>📄 Published Research Papers</span>
+              <span id="paper-count-pill" style="font-size: 0.8rem; background: rgba(255, 255, 255, 0.1); padding: 0.2rem 0.6rem; border-radius: 12px; color: var(--accent-cyan);">0</span>
+            </div>
+            
+            <div id="profile-papers-grid" class="research-cards-grid">
+              <p style="color: var(--text-secondary); grid-column: 1 / -1; text-align: center; padding: 2rem;">Loading uploaded papers...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 HydroStat. Empowering a clean energy future.</p>
+    </footer>
+
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/auth.js?v=7"></script>
+    <script type="module" src="js/profile-view.js"></script>
+</body>
+</html>

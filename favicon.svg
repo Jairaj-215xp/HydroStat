@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="cyanSphere" cx="32%" cy="68%" r="68%" fx="28%" fy="72%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#b5ffff" />
+      <stop offset="65%" stop-color="#4aeefe" />
+      <stop offset="88%" stop-color="#14d2f3" />
+      <stop offset="100%" stop-color="#049fc1" />
+    </radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="47" fill="url(#cyanSphere)" />
+  <g transform="rotate(-28 50 50)">
+    <path d="M 34 28 L 44 28 L 44 44 L 56 44 L 56 28 L 66 28 L 66 72 L 56 72 L 56 56 L 44 56 L 44 72 L 34 72 Z" fill="#050910" />
+  </g>
+</svg>

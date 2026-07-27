@@ -1,4 +1,5 @@
-﻿import { auth } from './firebase-config.js';
+import { auth } from './firebase-config.js';
+import { showConfirm, showToast } from './ui-utils.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
 const container = document.getElementById('bot-conversations-gallery-container');
@@ -75,7 +76,8 @@ async function loadBotConversations(user) {
                 
                 const btnDelete = card.querySelector('.btn-delete-chat');
                 btnDelete.addEventListener('click', async () => {
-                    if (confirm("Are you sure you want to delete this conversation?")) {
+                    const confirmed = await showConfirm("Are you sure you want to delete this conversation?");
+                    if (confirmed) {
                         btnDelete.disabled = true;
                         btnDelete.innerHTML = '<div class="spinner" style="width: 14px; height: 14px; border-width: 2px; border-left-color: #ff4d4d;"></div>';
                         try {
@@ -87,17 +89,18 @@ async function loadBotConversations(user) {
                             });
                             if (delRes.ok) {
                                 card.remove();
+                                showToast("Conversation deleted successfully.", "success");
                                 if (container.children.length === 0) {
                                     container.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-secondary);">You have no saved conversations.</p>';
                                 }
                             } else {
-                                alert("Failed to delete conversation.");
+                                showToast("Failed to delete conversation.", "error");
                                 btnDelete.disabled = false;
                                 btnDelete.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
                             }
                         } catch (err) {
                             console.error(err);
-                            alert("Error deleting conversation.");
+                            showToast("Error deleting conversation.", "error");
                             btnDelete.disabled = false;
                             btnDelete.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
                         }
