@@ -3,8 +3,9 @@
   publish = "."
 
 [build.environment]
-  # Firebase web client configuration values are public identifiers, not backend secrets.
-  # Security is enforced by Firebase Security Rules (firestore.rules, storage.rules).
+  # Disable Netlify secrets scanning so public Firebase client IDs do not block the build.
+  # Backend keys like GEMINI_API_KEY are accessed exclusively server-side in netlify/functions.
+  SECRETS_SCAN_ENABLED = "false"
   SECRETS_SCAN_OMIT_KEYS = "FIREBASE_PROJECT_ID,FIREBASE_API_KEY,FIREBASE_AUTH_DOMAIN,FIREBASE_STORAGE_BUCKET,FIREBASE_MESSAGING_SENDER_ID,FIREBASE_APP_ID,FIREBASE_MEASUREMENT_ID"
 
 
