@@ -193,18 +193,6 @@ exports.handler = async function (event, context) {
     };
   }
 
-  // Ensure Gemini API Key is configured on the server
-  if (!GEMINI_API_KEY) {
-    console.error('[Hydrobot Server Error] GEMINI_API_KEY is not configured in server environment.');
-    return {
-      statusCode: 503,
-      headers,
-      body: JSON.stringify({
-        error: 'Hydrobot is temporarily unavailable (API configuration missing). Please contact the platform administrator.'
-      })
-    };
-  }
-
   // Enforce total request payload size limit (max 16 KB)
   if (!event.body || event.body.length > 16384) {
     return {
@@ -374,6 +362,18 @@ exports.handler = async function (event, context) {
       maxOutputTokens: 500
     }
   };
+
+  // Ensure Gemini API Key is configured on the server before dispatching upstream
+  if (!GEMINI_API_KEY) {
+    console.error('[Hydrobot Server Error] GEMINI_API_KEY is not configured in server environment.');
+    return {
+      statusCode: 503,
+      headers,
+      body: JSON.stringify({
+        error: 'Hydrobot is temporarily unavailable (API configuration missing). Please contact the platform administrator.'
+      })
+    };
+  }
 
   const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
