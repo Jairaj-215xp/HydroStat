@@ -3,10 +3,10 @@
   publish = "."
 
 [build.environment]
-  # Disable Netlify secrets scanning so public Firebase client IDs do not block the build.
-  # Backend keys like GEMINI_API_KEY are accessed exclusively server-side in netlify/functions.
-  SECRETS_SCAN_ENABLED = "false"
+  # Netlify Secrets Scanning is active. Omit known public client-side Firebase configuration parameters
+  # and documentation/test files from secret matching to prevent false positives on public project IDs.
   SECRETS_SCAN_OMIT_KEYS = "FIREBASE_PROJECT_ID,FIREBASE_API_KEY,FIREBASE_AUTH_DOMAIN,FIREBASE_STORAGE_BUCKET,FIREBASE_MESSAGING_SENDER_ID,FIREBASE_APP_ID,FIREBASE_MEASUREMENT_ID"
+  SECRETS_SCAN_OMIT_PATHS = "docs/**,test/**"
 
 
 [functions]

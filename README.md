@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
   <h1>HydroStat 🔵⚗️</h1>
   <p><b>The ultimate global hub for hydrogen fuel information, daily news, ideas, and research.</b></p>
   <p>
@@ -16,23 +16,26 @@ HydroStat is an expansive, modern web platform dedicated to accelerating the cle
 - 🌍 **Global Information Hub** — Key metrics and up-to-date stats on global hydrogen adoption and massive infrastructure projects.
 - 📰 **Daily News & Ideas** — Aggregated, filterable news feed pulling from major global sources (GDELT, Google News, The Guardian, and dedicated renewable energy feeds).
 - 📚 **Academic & Community Research** — Curated shortcuts to major databases (Google Scholar, arXiv, PubMed, etc.) and a dedicated space for community-submitted research.
-- 🤖 **Hydrobot AI Assistant** — An intelligent, embedded in-browser chatbot that brainstorms and answers complex questions about hydrogen fuel, fuel cells, and green energy technology.
-- 🔐 **Robust User Authentication** — Secure login and signup system powered by Firebase, featuring email verification, Google OAuth, and secure password resets with custom UI.
-- 👤 **Personalized Dashboards** — A comprehensive "My Account" page to manage your public profile handle, bio, and social links.
-- 💾 **Saved Content & Bot Chats** — Bookmark articles, manage research drafts, and automatically save (and review or delete) interactive transcripts of your conversations with Hydrobot.
+- 🤖 **Hydrobot AI Assistant** — An evidence-based, serverless AI assistant powered by Google Gemini (Gemini 2.5 Flash / 2.0 Flash fallback) routed through secure Netlify Serverless Functions with complete client-side API key isolation, cryptographic Firebase token verification, and multi-tier rate limiting.
+- 🔐 **Robust User Authentication & Security** — Secure login and signup system powered by Firebase, featuring email verification, Google OAuth, custom UI dialogs, and hardened Firestore/Storage security rules prohibiting privilege escalation.
+- 👤 **Personalized Dashboards & Author Profiles** — A comprehensive "My Account" page to manage your public researcher handle (`/@handle`), bio, institutional affiliation, and social links.
+- 💾 **Drafts & Saved Content Workflows** — Bookmark peer-reviewed articles, draft research publications with seamless publish/delete synchronization, and save interactive transcripts of technical conversations with Hydrobot.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Architecture
 
-HydroStat leverages a lightweight but powerful stack to deliver a fast, app-like experience without the bloat of heavy front-end frameworks.
+HydroStat leverages a lightweight, secure serverless architecture delivering high performance and strict credential protection without bulky frontend frameworks.
 
-| Layer            | Technology |
-|-------------------|--------------------------------------|
-| **Frontend**      | HTML5, CSS3, Vanilla JavaScript (ES6 Modules) |
-| **Backend & Auth**| Firebase (Authentication, Firestore Database, Storage) |
-| **Data**          | JSON-based feeds (GDELT, Google News, Guardian, Renewable Energy feeds) |
-| **Styling**       | Custom CSS with modern Glassmorphism, CSS Variables, and responsive Flex/Grid layouts |
+| Layer | Technology | Role & Security Mechanism |
+| :--- | :--- | :--- |
+| **Frontend** | HTML5, CSS3, Vanilla JavaScript (ES6 Modules) | Zero framework bloat; sanitized DOM rendering and responsive glassmorphism |
+| **Serverless Gateway** | Netlify Functions (Node.js runtime) | API key isolation, input validation (1,000-char cap), and circuit breakers |
+| **Persistent Rate Store** | Netlify Blobs (`@netlify/blobs`) | Distributed multi-instance rate limiting across serverless regions |
+| **AI Reasoning Engine** | Google Gemini (2.5 Flash & 2.0 Flash) | Evidence-based technical reasoning isolated from client browsers |
+| **Scholarly Literature** | OpenAlex API (Polite Pool) | Live peer-reviewed paper search with date ceilings preventing future anomalies |
+| **News Proxy & Cache** | The Guardian API / Curated Archive | Serverless caching (15-min TTL) and transparent fallback attribution |
+| **Backend & Storage** | Firebase (Auth, Firestore, Storage) | Client SDK with server-side Security Rules enforcing user isolation & RBAC |
 
 ---
 
@@ -54,6 +57,15 @@ HydroStat/
 ├── upload.html                 # Content contribution page
 ├── verify.html                 # Email verification roadblock
 │
+├── netlify/                    # Serverless Functions (API Security & Proxies)
+│   └── functions/
+│       ├── gemini.js           # Serverless Gemini AI gateway with rate limiting
+│       └── news.js             # News aggregator proxy with in-memory caching
+│
+├── firestore.rules             # Production Firestore security rules & RBAC
+├── storage.rules               # Cloud Storage isolation and MIME/size limits
+├── netlify.toml                # Netlify build configuration & header security
+│
 ├── css/                        # Global and page-specific stylesheets
 │   ├── index.css
 │   └── info.css
@@ -63,13 +75,17 @@ HydroStat/
 │   ├── auth.js                 # Centralized Auth logic & Modals
 │   ├── account.js              # Dashboard data loading and profile management
 │   ├── bot-chats.js            # Bot transcript loading and deletion logic
+│   ├── drafts.js               # Research draft management workflow
 │   ├── firebase-config.js      # Firebase SDK initialization
 │   ├── ui-utils.js             # Reusable UI components (Toasts, Modals)
 │   └── ... (other page scripts)
 │
 ├── assets/                     # Images, SVGs, and branding assets
-├── data/                       # Static JSON files for news feeds and historical data
-└── scripts/                    # Archived Python/JS utility scripts for bulk updates
+├── docs/                       # Academic revision specs, validation plan & empirical studies
+├── test/                       # Automated test suites and benchmark runners
+│   ├── test-functions.js       # 19/19 serverless security & token crypto verification tests
+│   └── run-benchmarks.js       # 10-trial latency & empirical benchmark suite
+└── scripts/                    # Build scripts & local development server
 ```
 
 ---
@@ -77,9 +93,9 @@ HydroStat/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- A modern web browser (Chrome, Firefox, Safari, Edge).
+- Node.js (v18.x, v20.x, or v22.x) and npm.
 - A [Firebase](https://firebase.google.com/) project (for Authentication and Firestore).
-- A local static server (e.g., VS Code [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) or Python's `http.server`) to allow ES6 Module imports to function correctly.
+- Google Gemini API key (configured in server-side `.env` or Netlify environment variables).
 
 ### Setup
 
@@ -89,17 +105,36 @@ HydroStat/
    cd HydroStat
    ```
 
-2. **Configure Firebase**
-   - Create a file named `env.js` in the `js/` directory (you can use `js/env.example.js` as a template).
-   - Export your Firebase config variables (API key, project ID, auth domain, etc.).
-   - ⚠️ **Important:** Never commit your `env.js` with real API keys to version control. It is ignored in `.gitignore`.
-
-3. **Run Locally**
-   Using Python:
+2. **Install Dependencies**
    ```bash
-   python -m http.server 8000
+   npm install
    ```
-   Then open `http://localhost:8000` in your browser.
+
+3. **Configure Environment Variables**
+   - Copy `.env.example` to `.env` (or configure in Netlify Dashboard):
+     ```env
+     GEMINI_API_KEY=your_gemini_api_key
+     FIREBASE_API_KEY=your_firebase_api_key
+     FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+     FIREBASE_PROJECT_ID=your_project_id
+     ```
+   - ⚠️ **Important:** Server secrets (like `GEMINI_API_KEY`) are accessed strictly by backend serverless functions and are **never** emitted into client bundles.
+
+4. **Run the Development Server**
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:8888` in your browser. The built-in dev server automatically serves static assets and routes `/.netlify/functions/gemini` and `/.netlify/functions/news`.
+
+5. **Run Security & Verification Tests**
+   ```bash
+   npm test
+   ```
+
+6. **Run Empirical Performance Benchmarks**
+   ```bash
+   npm run benchmark
+   ```
 
 ---
 

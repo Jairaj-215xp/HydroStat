@@ -161,11 +161,14 @@ exports.handler = async function (event, context) {
       };
     });
 
+    const isLive = articles.length > 0;
     const responsePayload = {
-      source: 'guardian_live',
-      isLive: true,
-      message: 'Live news feed powered by The Guardian Open Platform.',
-      articles: articles.length > 0 ? articles : CURATED_FALLBACK_NEWS
+      source: isLive ? 'guardian_live' : 'curated_archive',
+      isLive: isLive,
+      message: isLive
+        ? 'Live news feed powered by The Guardian Open Platform.'
+        : 'Displaying curated industry and research archives (no eligible live articles returned from upstream).',
+      articles: isLive ? articles : CURATED_FALLBACK_NEWS
     };
 
     newsCache = { timestamp: now, data: responsePayload };

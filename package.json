@@ -18,5 +18,8 @@
     "openalex"
   ],
   "author": "HydroStat Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.4"
+  }
 }
