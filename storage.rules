@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Avatar Uploads: images only, max 5MB
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId)
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      allow delete: if isOwner(userId);
+    }
+
+    // Community Research Paper Attachments: PDF or images only, max 15MB
+    match /research/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId)
+                    && request.resource.size < 15 * 1024 * 1024
+                    && (request.resource.contentType == 'application/pdf' || request.resource.contentType.matches('image/.*'));
+      allow delete: if isOwner(userId);
+    }
+
+    // Default deny for all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

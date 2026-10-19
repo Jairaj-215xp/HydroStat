@@ -41,10 +41,14 @@ async function loadBotConversations(user) {
             container.innerHTML = '';
             docs.forEach(doc => {
                 const fields = doc.fields;
-                const title = fields.title?.stringValue || 'Conversation';
-                let timestamp = fields.timestamp?.stringValue || '';
-                if (timestamp) timestamp = new Date(timestamp).toLocaleString();
+                const rawTitle = fields.title?.stringValue || 'Conversation';
+                let rawTimestamp = fields.timestamp?.stringValue || '';
+                if (rawTimestamp) rawTimestamp = new Date(rawTimestamp).toLocaleString();
                 const historyStr = fields.history?.stringValue || '[]';
+                
+                // Safe escaping for card display
+                const safeTitle = String(rawTitle).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeTimestamp = String(rawTimestamp).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 
                 const card = document.createElement('div');
                 card.className = 'research-card';
@@ -52,13 +56,13 @@ async function loadBotConversations(user) {
                 card.style.flexDirection = 'column';
                 card.style.justifyContent = 'space-between';
                 
-                card.innerHTML = 
+                card.innerHTML = `
                     <div class="card-content">
                         <div class="card-meta" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                             <span class="tag">AI Chat</span>
-                            <span> + timestamp + </span>
+                            <span>${safeTimestamp}</span>
                         </div>
-                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;"> + title + </h3>
+                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">${safeTitle}</h3>
                         <p style="color: var(--text-secondary); font-size: 0.9rem;">A saved interactive brainstorming session with Hydrobot.</p>
                     </div>
                     <div style="padding: 0 1.5rem 1.5rem 1.5rem; margin-top: auto; display: flex; gap: 0.5rem;">
@@ -67,7 +71,7 @@ async function loadBotConversations(user) {
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </div>
-                ;
+                `;
                 
                 const btnView = card.querySelector('.btn-view-chat');
                 btnView.addEventListener('click', () => {

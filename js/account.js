@@ -1,4 +1,4 @@
-﻿import { auth, db } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import { openDocumentViewer } from './ui-utils.js';
 import { onAuthStateChanged, updatePassword, deleteUser, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
@@ -748,6 +748,7 @@ async function fetchSavedContent(user) {
                     const fields = doc.fields;
                     const title = fields.title?.stringValue || 'Untitled Draft';
                     const date = fields.createdAt?.timestampValue ? new Date(fields.createdAt.timestampValue).toLocaleDateString() : 'Recently';
+                    const draftId = doc.name ? doc.name.split('/').pop() : '';
                     
                     draftsContainer.innerHTML += `
                         <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
@@ -755,7 +756,7 @@ async function fetchSavedContent(user) {
                                 <h4 style="margin-bottom: 0.2rem; color: #fff;">${title}</h4>
                                 <span style="font-size: 0.8rem; color: #888;">Saved: ${date}</span>
                             </div>
-                            <button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">Edit</button>
+                            <a href="upload.html?draftId=${draftId}" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem; text-decoration: none;">Edit</a>
                         </div>
                     `;
                 });

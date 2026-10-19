@@ -1,0 +1,22 @@
+{
+  "name": "hydrostat",
+  "version": "2.0.0",
+  "description": "The global hub for hydrogen fuel information, research, news, and AI insights",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev-server.js",
+    "start": "node scripts/dev-server.js",
+    "build": "node scripts/generate-env.js",
+    "test": "node test/test-functions.js",
+    "benchmark": "node test/run-benchmarks.js"
+  },
+  "keywords": [
+    "hydrogen",
+    "clean-energy",
+    "fuel-cells",
+    "renewables",
+    "openalex"
+  ],
+  "author": "HydroStat Team",
+  "license": "MIT"
+}

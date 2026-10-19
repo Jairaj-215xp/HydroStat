@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Public Users Profile collection
+    match /users/{userId} {
+      // Public profiles can be viewed by anyone for researcher lookup (@handle)
+      allow read: if true;
+      
+      // Creating a user profile document
+      allow create: if isOwner(userId);
+      
+      // Updating user profile: owner only, and cannot self-escalate role/permissions
+      allow update: if isOwner(userId)
+                    && (resource == null || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin', 'isVerified']));
+      
+      // Deleting user profile
+      allow delete: if isOwner(userId);
+
+      // Private Subcollections strictly isolated to the document owner
+      match /bookmarks/{bookmarkId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+
+      match /drafts/{draftId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+
+      match /bot_conversations/{chatId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+
+      match /notifications/{notifId} {
+        // Owner has full read, update, delete
+        allow read, update, delete: if isOwner(userId);
+        // Any authenticated user can send an activity notification (e.g. follow notification)
+        allow create: if isAuthenticated() && request.resource.data.message is string;
+      }
+    }
+
+    // Community Research Papers
+    match /researchPapers/{paperId} {
+      // Publicly viewable research papers
+      allow read: if true;
+      
+      // Uploading papers requires authentication and explicit authorId binding
+      allow create: if isAuthenticated() 
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0;
+      
+      // Only the author can edit or delete their published research
+      allow update, delete: if isAuthenticated() && resource.data.authorId == request.auth.uid;
+    }
+
+    // Forum Doubts / Q&A
+    match /doubts/{doubtId} {
+      // Anyone can read community forum questions
+      allow read: if true;
+      
+      // Posting questions requires valid message content
+      allow create: if request.resource.data.message is string 
+                    && request.resource.data.message.size() > 0
+                    && (!('authorId' in request.resource.data) || (isAuthenticated() && request.resource.data.authorId == request.auth.uid));
+      
+      // Only author can update or delete
+      allow update, delete: if isAuthenticated() && resource.data.authorId == request.auth.uid;
+
+      // Replies subcollection
+      match /replies/{replyId} {
+        allow read: if true;
+        allow create: if isAuthenticated() 
+                      && request.resource.data.authorId == request.auth.uid
+                      && request.resource.data.text is string;
+        allow update, delete: if isAuthenticated() && resource.data.authorId == request.auth.uid;
+      }
+    }
+
+    // Rate Limiting and Server Internal Collection
+    // Completely closed to all client-side direct access
+    match /_rate_limits/{document=**} {
+      allow read, write: if false;
+    }
+
+    // Default deny rule for any unspecified collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

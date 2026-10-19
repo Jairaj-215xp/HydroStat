@@ -1,11 +1,22 @@
-﻿if ('scrollRestoration' in history) {
+if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
 }
 
-import { geminiApiKey } from './env.js';
+
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 import { showConfirm, showAlert } from './ui-utils.js';
+
+// Safe DOM escaping utility to protect against XSS from external APIs and user content
+function escapeHtml(str) {
+    if (!str && str !== 0) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 window.userBookmarks = new Set();
 onAuthStateChanged(auth, async (user) => {
@@ -138,54 +149,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const newsContainer = document.getElementById('news-container');
     const filterBtns = document.querySelectorAll('.filter-btn');
 
-    // --- Dynamic Data Fetching from Real News Platform ---
+    // --- Dynamic Data Fetching from HydroStat News Proxy ---
     async function fetchDynamicNews() {
-        // Using The Guardian's open API to get reliable news with authentic images
-        const API_URL = 'https://content.guardianapis.com/search?q=hydrogen%20fuel%20energy&show-fields=thumbnail,headline,trailText&page-size=12&api-key=test';
-
         try {
             newsContainer.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-secondary);">Loading latest updates...</p>';
             
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error('Network response was not ok');
+            const response = await fetch('/.netlify/functions/news');
+            if (!response.ok) throw new Error('News service returned status ' + response.status);
             const data = await response.json();
             
-            if (data.response && data.response.results && data.response.results.length > 0) {
-                const results = data.response.results;
+            if (data.articles && data.articles.length > 0) {
+                currentData = data.articles;
                 
-                // Filter out results that don't have a thumbnail to ensure we only show cards with images
-                const resultsWithImages = results.filter(item => item.fields && item.fields.thumbnail);
-
-                currentData = resultsWithImages.slice(0, 6).map((item, index) => {
-                    const isIdea = item.fields.headline.toLowerCase().includes('concept') || 
-                                   item.fields.headline.toLowerCase().includes('research') || 
-                                   item.fields.headline.toLowerCase().includes('future') ||
-                                   index % 3 === 0; 
-                                   
-                    // Directly use the high quality image from the news publisher
-                    const realImage = item.fields.thumbnail;
-                    const bgImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('${realImage}')`;
-                    
-                    return {
-                        id: index + 1,
-                        type: isIdea ? 'ideas' : 'news',
-                        title: item.fields.headline,
-                        date: new Date(item.webPublicationDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-                        desc: (item.fields.trailText || '').replace(/<[^>]*>?/gm, '').substring(0, 110) + '...',
-                        image: bgImage,
-                        link: item.webUrl
-                    };
-                });
+                // If displaying curated fallback archive, add an honest attribution badge
+                const newsSection = document.getElementById('news');
+                if (newsSection && !data.isLive) {
+                    let note = document.getElementById('news-archive-notice');
+                    if (!note) {
+                        note = document.createElement('div');
+                        note.id = 'news-archive-notice';
+                        note.style.cssText = 'text-align:center; font-size:0.85rem; color:rgba(255,255,255,0.7); margin: 0.5rem 0 1.5rem 0;';
+                        note.innerHTML = '<span style="background:rgba(0,255,255,0.08); border:1px solid rgba(0,255,255,0.25); border-radius:20px; padding:4px 14px; display:inline-flex; align-items:center; gap:6px;">📚 Verified Curated Industry & Research Archive</span>';
+                        const filters = newsSection.querySelector('.news-filters');
+                        if (filters) filters.after(note);
+                    }
+                }
             } else {
                 currentData = mockData;
             }
         } catch (error) {
-            console.error('Error fetching dynamic news:', error);
+            console.warn('Live news endpoint unavailable, rendering curated fallback:', error);
             currentData = mockData;
         }
         
         // Ensure active filter is applied on load
-        const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+        const activeFilterBtn = document.querySelector('.filter-btn.active');
+        const activeFilter = activeFilterBtn ? activeFilterBtn.getAttribute('data-filter') : 'all';
         renderNews(activeFilter);
     }
 
@@ -208,15 +207,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = `news-card hidden-element ${delayClass}`;
             
+            const safeTitle = escapeHtml(item.title);
+            const safeDate = escapeHtml(item.date);
+            const safeDesc = escapeHtml(item.desc);
+            const safeTag = item.type === 'news' ? 'Global News' : 'New Idea';
+            const safeLink = (item.link && item.link.startsWith('http')) ? item.link : '#';
+            
             card.innerHTML = `
                 <div class="news-image" style="background-image: ${item.image}">
-                    <span class="news-tag">${item.type === 'news' ? 'Global News' : 'New Idea'}</span>
+                    <span class="news-tag">${safeTag}</span>
                 </div>
                 <div class="news-content">
-                    <span class="news-date">${item.date}</span>
-                    <h3 class="news-title">${item.title}</h3>
-                    <p class="news-desc">${item.desc}</p>
-                    <a href="${item.link}" target="_blank" class="read-more">Read Full Story <span>&rarr;</span></a>
+                    <span class="news-date">${safeDate}</span>
+                    <h3 class="news-title">${safeTitle}</h3>
+                    <p class="news-desc">${safeDesc}</p>
+                    <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="read-more">Read Full Story <span>&rarr;</span></a>
                 </div>
             `;
             
@@ -328,10 +333,29 @@ document.addEventListener('DOMContentLoaded', () => {
         chatbotPanel.classList.add('hidden');
     });
 
+    function formatAiResponse(rawText) {
+        if (!rawText) return '';
+        // 1. Escape HTML entities to prevent script injection
+        let safe = escapeHtml(rawText);
+        // 2. Bold formatting: **text**
+        safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // 3. Inline code blocks: `code`
+        safe = safe.replace(/`([^`]+)`/g, '<code style="background:rgba(0,255,255,0.1); padding:2px 5px; border-radius:4px; font-family:monospace; font-size:0.9em;">$1</code>');
+        // 4. Line breaks to <br> or paragraphs
+        safe = safe.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>');
+        return safe;
+    }
+
     function appendMessage(text, sender) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}-message`;
-        msgDiv.innerHTML = `<p>${text}</p>`;
+        if (sender === 'user') {
+            const p = document.createElement('p');
+            p.textContent = text;
+            msgDiv.appendChild(p);
+        } else {
+            msgDiv.innerHTML = `<p>${formatAiResponse(text)}</p>`;
+        }
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -346,40 +370,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function callGeminiAPI(userText) {
-        const apiKey = geminiApiKey;
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-        
+        // Record user turn in local history
         chatHistory.push({ role: 'user', parts: [{ text: userText }] });
 
+        const headers = { 'Content-Type': 'application/json' };
+        if (auth && auth.currentUser) {
+            try {
+                const token = await auth.currentUser.getIdToken();
+                headers['Authorization'] = `Bearer ${token}`;
+            } catch (err) {
+                console.warn("Could not retrieve Firebase auth token:", err);
+            }
+        }
+
         const requestBody = {
-            system_instruction: {
-                parts: { text: "You are an AI assistant specifically built for a website called HydroStat. Your ONLY purpose is to answer questions related to hydrogen fuel, clean energy, fuel cells, and related technologies. Keep your answers extremely short, crisp, and easy to understand (1-3 sentences max). Most importantly: BE DEFINITIVE AND GIVE CONCRETE NUMBERS. Do NOT hedge or say 'it varies', 'it depends', or 'costs vary'. Instead, provide realistic average numerical estimates, prices, or ranges based on the US/Global market in 2024. If the user asks for a rate or cost, give them an actual dollar amount. If the user asks about ANYTHING else (e.g. coding, general history, recipes, math, etc), politely decline and remind them you can only answer questions about hydrogen and clean energy." }
-            },
-            contents: chatHistory
+            message: userText,
+            history: chatHistory.slice(-10)
         };
 
         try {
-            const response = await fetch(API_URL, {
+            const response = await fetch('/.netlify/functions/gemini', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {
-                if (response.status === 400) {
-                    return "Invalid API Key. Please verify the key provided in the source code.";
+                const errorData = await response.json().catch(() => null);
+                if (response.status === 429) {
+                    return errorData?.error || "Query rate limit reached. Please wait a moment before asking another question.";
                 }
-                throw new Error('API Request Failed');
+                return errorData?.error || "Hydrobot is having trouble connecting to the network right now. Please try again shortly.";
             }
 
             const data = await response.json();
-            const aiText = data.candidates[0].content.parts[0].text;
+            const aiText = data.reply || "I could not generate an answer for this question. Please try asking again.";
             chatHistory.push({ role: 'model', parts: [{ text: aiText }] });
             return aiText;
 
         } catch (error) {
-            console.error("Gemini API Error:", error);
-            return "Sorry, I am having trouble connecting to the network right now.";
+            console.error("Hydrobot Network/API Error:", error);
+            return "Sorry, I am having trouble connecting to the network right now. Please check your connection.";
         }
     }
 
@@ -396,9 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const responseText = await callGeminiAPI(text);
             
             loader.remove();
-            // Simple markdown to HTML conversion for bold text
-            const formattedText = responseText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            appendMessage(formattedText, 'ai');
+            appendMessage(responseText, 'ai');
         });
     }
 });
@@ -406,11 +435,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Research Papers Fetching ---
     const researchContainer = document.getElementById('research-container');
 
+    function reconstructAbstract(invertedIndex) {
+        if (!invertedIndex || typeof invertedIndex !== 'object') return null;
+        try {
+            const words = [];
+            for (const [word, positions] of Object.entries(invertedIndex)) {
+                if (Array.isArray(positions)) {
+                    for (const pos of positions) {
+                        words[pos] = word;
+                    }
+                }
+            }
+            const text = words.filter(w => w !== undefined).join(' ').trim();
+            return text.length > 20 ? text : null;
+        } catch {
+            return null;
+        }
+    }
+
     async function fetchResearchPapers() {
         if (!researchContainer) return;
 
-        // Fetching 6 recent papers about hydrogen fuel and green energy using OpenAlex API (Polite Pool)
-        const API_URL = 'https://api.openalex.org/works?search=hydrogen%20fuel%20cell&per-page=6&sort=publication_date:desc&mailto=contact@hydrostat.com';
+        // Fetch papers strictly up to today's date to prevent future placeholder/embargo dates (e.g. 2027)
+        const today = new Date().toISOString().split('T')[0];
+        const currentYear = new Date().getFullYear();
+        const API_URL = `https://api.openalex.org/works?filter=title_and_abstract.search:hydrogen%20fuel%20cell,to_publication_date:${today}&per-page=12&sort=publication_date:desc&mailto=contact@hydrostat.com`;
 
         try {
             researchContainer.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-secondary);">Loading latest academic papers...</p>';
@@ -419,31 +468,58 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             
-            if (data.results && data.results.length > 0) {
-                const results = data.results;
+            const rawResults = data.results || [];
+            // Strictly exclude any future-dated records or invalid items
+            const results = rawResults.filter(item => {
+                if (!item.title) return false;
+                if (item.publication_year && item.publication_year > currentYear) return false;
+                return true;
+            }).slice(0, 6);
+
+            if (results.length > 0) {
                 researchContainer.innerHTML = '';
                 
                 results.forEach((item, index) => {
                     const delayClass = `delay-${(index % 3) + 1}`; 
                     
-                    const title = item.title || 'Untitled Research Paper';
+                    const safeTitle = escapeHtml(item.title || 'Untitled Research Paper');
                     
                     // OpenAlex authors format mapping
-                    let authors = 'Various Authors';
+                    let rawAuthors = 'Various Authors';
                     if (item.authorships && item.authorships.length > 0) {
-                        authors = item.authorships.map(a => a.author.display_name).join(', ');
+                        rawAuthors = item.authorships.map(a => a.author?.display_name || '').filter(Boolean).join(', ') || 'Various Authors';
                     }
+                    const safeAuthors = escapeHtml(rawAuthors);
                     
-                    const pubYear = item.publication_year || 'Recent';
-                    const readLink = item.doi || item.id || '#';
+                    // Format proper month and year, guaranteeing no future years
+                    let safePubDate = 'Recent';
+                    if (item.publication_date) {
+                        const dateObj = new Date(item.publication_date + 'T00:00:00');
+                        if (!isNaN(dateObj.getTime())) {
+                            safePubDate = dateObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                        } else if (item.publication_year) {
+                            safePubDate = String(item.publication_year);
+                        }
+                    } else if (item.publication_year) {
+                        safePubDate = String(item.publication_year);
+                    }
+                    const safeFormattedDate = escapeHtml(safePubDate);
 
-                    // Provide a default description if abstract isn't easily available
-                    let abstract = 'Read this peer-reviewed academic paper exploring recent advancements in hydrogen technology, production methods, and its role in the clean energy economy.';
+                    const rawLink = item.doi || item.id || '#';
+                    const safeReadLink = (rawLink && rawLink.startsWith('http')) ? rawLink : '#';
+
+                    // Reconstruct actual academic abstract if available, or fall back to high-quality description
+                    const rawAbstract = reconstructAbstract(item.abstract_inverted_index);
+                    let safeAbstract = 'Read this peer-reviewed academic paper exploring recent advancements in hydrogen fuel cell technology and clean energy systems.';
+                    if (rawAbstract) {
+                        safeAbstract = escapeHtml(rawAbstract.length > 220 ? rawAbstract.substring(0, 220) + '...' : rawAbstract);
+                    }
                     
                     const card = document.createElement('div');
                     card.className = `research-card glass-card ${delayClass}`;
                     
                     const docId = item.id ? item.id.split('/').pop() : 'doc-' + Date.now();
+                    const safeDocId = escapeHtml(docId);
                     
                     const isBookmarked = window.userBookmarks && window.userBookmarks.has(docId);
                     const bookmarkColor = isBookmarked ? 'var(--accent-cyan)' : 'var(--text-secondary)';
@@ -454,17 +530,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.innerHTML = `
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <h3>${title}</h3>
-                            <button class="btn-bookmark-academic" ${bookmarkedAttr} data-id="${docId}" data-title="${title.replace(/"/g, '&quot;')}" data-url="${readLink}" data-authors="${authors.replace(/"/g, '&quot;')}" data-desc="${abstract.replace(/"/g, '&quot;')}" data-date="${pubYear}" data-source="Academic" style="background: none; border: none; cursor: pointer; color: ${bookmarkColor}; transition: color 0.2s;" title="Bookmark this paper">
+                                <h3>${safeTitle}</h3>
+                            <button class="btn-bookmark-academic" ${bookmarkedAttr} data-id="${safeDocId}" data-title="${safeTitle}" data-url="${safeReadLink}" data-authors="${safeAuthors}" data-desc="${safeAbstract}" data-date="${safeFormattedDate}" data-source="Academic" style="background: none; border: none; cursor: pointer; color: ${bookmarkColor}; transition: color 0.2s;" title="Bookmark this paper">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="${bookmarkFill}" stroke="${bookmarkStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                                 </button>
                             </div>
-                            <div class="research-authors">${authors.substring(0, 60)}${authors.length > 60 ? '...' : ''}</div>
-                            <p class="research-abstract">${abstract}</p>
+                            <div class="research-authors">${safeAuthors.substring(0, 60)}${safeAuthors.length > 60 ? '...' : ''}</div>
+                            <p class="research-abstract">${safeAbstract}</p>
                         </div>
                         <div class="research-footer">
-                            <span class="research-date">Published: ${pubYear}</span>
-                            <a href="${readLink}" target="_blank" class="btn-outline">Read Paper <span>&nearr;</span></a>
+                            <span class="research-date">Published: ${safeFormattedDate}</span>
+                            <a href="${safeReadLink}" target="_blank" rel="noopener noreferrer" class="btn-outline">Read Paper <span>&nearr;</span></a>
                         </div>
                     `;
                     

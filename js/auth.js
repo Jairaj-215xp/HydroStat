@@ -313,15 +313,46 @@ onAuthStateChanged(auth, (user) => {
         <div class="nav-auth-container">
             <img src="${avatarUrl}" alt="Profile" class="nav-avatar" style="${filterStyle}" referrerpolicy="no-referrer">
             <div class="nav-dropdown">
-                <a href="account.html?v=3">My Account</a>
-                <a href="#" id="nav-switch-btn">Switch Account</a>
-                <div class="dropdown-divider"></div>
-                <a href="#" id="nav-logout-btn" style="color: #ff6666;">Log Out</a>
+                <div class="dropdown-user-info" style="padding: 0.8rem 1.2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 255, 255, 0.03);">
+                    <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.displayName || user.email?.split('@')[0] || 'Researcher'}</div>
+                    <div id="nav-dropdown-handle" style="font-size: 0.8rem; color: var(--accent-cyan, #00ffff); margin-bottom: 0.7rem;">@member</div>
+                    <div style="display: flex; gap: 0.6rem; align-items: center; font-size: 0.82rem;">
+                        <a href="account.html?v=3" style="padding: 0; background: none !important; color: rgba(255,255,255,0.8); display: inline-flex; gap: 4px; align-items: center; width: auto; font-weight: 500;">
+                            <strong id="nav-stat-followers" style="color: #fff; font-size: 0.95rem;">0</strong> Followers
+                        </a>
+                        <span style="color: rgba(255,255,255,0.25);">•</span>
+                        <a href="account.html?v=3" style="padding: 0; background: none !important; color: rgba(255,255,255,0.8); display: inline-flex; gap: 4px; align-items: center; width: auto; font-weight: 500;">
+                            <strong id="nav-stat-following" style="color: #fff; font-size: 0.95rem;">0</strong> Following
+                        </a>
+                    </div>
+                </div>
+                <div style="padding: 0.3rem 0;">
+                    <a href="account.html?v=3">My Account</a>
+                    <a href="#" id="nav-notifications-btn" style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>🔔 Notifications</span>
+                        <span id="nav-notif-count" style="background: rgba(0, 255, 255, 0.15); color: var(--accent-cyan, #00ffff); font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; font-weight: 700; border: 1px solid rgba(0, 255, 255, 0.3);">0</span>
+                    </a>
+                    <a href="#" id="nav-switch-btn">Switch Account</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" id="nav-logout-btn" style="color: #ff6666;">Log Out</a>
+                </div>
             </div>
         </div>
     `;
     navContainer.appendChild(authLi);
     
+    // Fetch live social stats & notifications count
+    fetchNavSocialStats(user);
+
+    // Notifications Click Handler
+    const notifBtn = document.getElementById('nav-notifications-btn');
+    if (notifBtn) {
+        notifBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openGlobalNotificationModal(user);
+        });
+    }
+
     // Switch Account Logic
     document.getElementById('nav-switch-btn').addEventListener('click', (e) => {
         e.preventDefault();
@@ -357,6 +388,182 @@ onAuthStateChanged(auth, (user) => {
     });
   }
 });
+
+async function fetchNavSocialStats(user) {
+  try {
+    const baseUrl = `https://firestore.googleapis.com/v1/projects/hydrohub-215/databases/(default)/documents`;
+    
+    // 1. Get user profile data (followers & following counts, handle)
+    const resUser = await fetch(`${baseUrl}/users/${user.uid}`);
+    if (resUser.ok) {
+      const uData = await resUser.json();
+      const fld = uData.fields || {};
+      const followers = fld.followers?.arrayValue?.values || [];
+      const following = fld.following?.arrayValue?.values || [];
+      const handle = fld.handle?.stringValue || fld.username?.stringValue || user.email?.split('@')[0] || 'member';
+      
+      const folEl = document.getElementById('nav-stat-followers');
+      const finEl = document.getElementById('nav-stat-following');
+      const hndEl = document.getElementById('nav-dropdown-handle');
+      
+      if (folEl) folEl.innerText = followers.length;
+      if (finEl) finEl.innerText = following.length;
+      if (hndEl) hndEl.innerText = `@${handle}`;
+    }
+
+    // 2. Get unread notifications count
+    const resNotif = await fetch(`${baseUrl}/users/${user.uid}/notifications`);
+    if (resNotif.ok) {
+      const nData = await resNotif.json();
+      const docs = nData.documents || [];
+      let unread = 0;
+      docs.forEach(d => {
+        if (!d.fields?.read?.booleanValue) unread++;
+      });
+      const badge = document.getElementById('nav-notif-count');
+      if (badge) {
+        badge.innerText = unread > 0 ? `${unread} New` : `0`;
+        if (unread > 0) {
+          badge.style.background = 'linear-gradient(135deg, #ff007f, #7928ca)';
+          badge.style.color = '#fff';
+          badge.style.borderColor = 'transparent';
+          badge.style.boxShadow = '0 0 10px rgba(255, 0, 127, 0.5)';
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Could not fetch navigation statistics:", e);
+  }
+}
+
+async function openGlobalNotificationModal(user) {
+  let modal = document.getElementById('global-notifications-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'global-notifications-modal';
+    modal.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 100000;
+      display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.25s ease; padding: 1rem;
+    `;
+    modal.innerHTML = `
+      <div style="background: rgba(15, 22, 40, 0.95); border: 1px solid rgba(0, 255, 255, 0.3); border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 255, 255, 0.15); overflow: hidden; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 255, 255, 0.05);">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 1.3rem;">🔔</span>
+            <h3 style="margin: 0; color: #fff; font-size: 1.1rem; font-weight: 700; font-family: var(--font-heading, sans-serif);">Notifications</h3>
+          </div>
+          <div style="display: flex; gap: 0.8rem; align-items: center;">
+            <button id="modal-mark-all-read" style="background: transparent; color: var(--accent-cyan, #00ffff); border: 1px solid rgba(0,255,255,0.3); padding: 5px 12px; border-radius: 12px; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; font-weight: 600;">Mark Read ✓</button>
+            <button id="close-notif-modal" style="background: none; border: none; color: rgba(255,255,255,0.6); font-size: 1.6rem; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+          </div>
+        </div>
+        <div id="modal-notif-list" style="padding: 1.2rem 1.5rem; max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem;">
+          <p style="color: var(--text-secondary, #aaa); margin: 0; text-align: center; padding: 1.5rem 0;">Loading notifications...</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    requestAnimationFrame(() => {
+      modal.style.opacity = '1';
+      modal.firstElementChild.style.transform = 'translateY(0)';
+    });
+    
+    document.getElementById('close-notif-modal').onclick = () => closeGlobalNotificationModal();
+    modal.onclick = (e) => { if (e.target === modal) closeGlobalNotificationModal(); };
+  } else {
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      modal.style.opacity = '1';
+      modal.firstElementChild.style.transform = 'translateY(0)';
+    });
+  }
+
+  const listContainer = document.getElementById('modal-notif-list');
+  try {
+    const baseUrl = `https://firestore.googleapis.com/v1/projects/hydrohub-215/databases/(default)/documents/users/${user.uid}/notifications`;
+    const res = await fetch(baseUrl);
+    if (res.ok) {
+      const data = await res.json();
+      const docs = data.documents || [];
+      if (docs.length === 0) {
+        listContainer.innerHTML = `
+          <div style="text-align: center; padding: 2.5rem 1rem;">
+            <div style="font-size: 2.8rem; margin-bottom: 0.6rem; opacity: 0.8;">✨</div>
+            <p style="color: #fff; font-weight: 600; font-size: 1.05rem; margin: 0 0 6px 0;">All caught up!</p>
+            <p style="color: rgba(255,255,255,0.5); font-size: 0.88rem; margin: 0;">You have no unread notifications right now.</p>
+          </div>
+        `;
+      } else {
+        listContainer.innerHTML = '';
+        docs.reverse().forEach(doc => {
+          const f = doc.fields || {};
+          const msg = f.message?.stringValue || 'New activity on HydroStat';
+          const read = f.read?.booleanValue || false;
+          const link = f.link?.stringValue || 'account.html?v=3';
+          
+          const item = document.createElement('div');
+          item.style.cssText = `
+            padding: 0.9rem 1.1rem; border-radius: 12px; transition: all 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+            background: ${read ? 'rgba(255,255,255,0.03)' : 'rgba(0, 255, 255, 0.08)'};
+            border: 1px solid ${read ? 'rgba(255,255,255,0.06)' : 'rgba(0, 255, 255, 0.3)'};
+          `;
+          item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${read ? 'transparent' : '#00ffff'}; box-shadow: ${read ? 'none' : '0 0 8px #00ffff'}; flex-shrink: 0;"></span>
+              <span style="color: ${read ? 'rgba(255,255,255,0.7)' : '#fff'}; font-size: 0.92rem; font-weight: ${read ? '400' : '600'}; line-height: 1.4;">${msg}</span>
+            </div>
+            <span style="color: rgba(255,255,255,0.4); font-size: 1.2rem;">&rsaquo;</span>
+          `;
+          item.onmouseover = () => { item.style.transform = 'translateX(4px)'; item.style.background = 'rgba(0, 255, 255, 0.12)'; };
+          item.onmouseout = () => { item.style.transform = 'translateX(0)'; item.style.background = read ? 'rgba(255,255,255,0.03)' : 'rgba(0, 255, 255, 0.08)'; };
+          item.onclick = () => {
+            window.location.href = link;
+          };
+          listContainer.appendChild(item);
+        });
+      }
+    } else {
+      listContainer.innerHTML = `<p style="color: #ff6666; text-align: center;">Could not load notifications at this moment.</p>`;
+    }
+  } catch (err) {
+    console.error("Error loading notification modal:", err);
+    listContainer.innerHTML = `<p style="color: #ff6666; text-align: center;">Error loading notifications.</p>`;
+  }
+
+  const btnMark = document.getElementById('modal-mark-all-read');
+  if (btnMark) {
+    btnMark.onclick = async () => {
+      if (window.showToast) window.showToast("All notifications marked as read ✓", "success");
+      const badge = document.getElementById('nav-notif-count');
+      if (badge) {
+        badge.innerText = '0';
+        badge.style.background = 'rgba(0, 255, 255, 0.15)';
+        badge.style.color = 'var(--accent-cyan, #00ffff)';
+        badge.style.boxShadow = 'none';
+        badge.style.border = '1px solid rgba(0, 255, 255, 0.3)';
+      }
+      Array.from(listContainer.children).forEach(el => {
+        el.style.background = 'rgba(255,255,255,0.03)';
+        el.style.border = '1px solid rgba(255,255,255,0.06)';
+        const dot = el.querySelector('span:first-child');
+        if (dot) { dot.style.background = 'transparent'; dot.style.boxShadow = 'none'; }
+        const text = el.querySelector('span:nth-child(2)');
+        if (text) { text.style.color = 'rgba(255,255,255,0.7)'; text.style.fontWeight = '400'; }
+      });
+    };
+  }
+}
+
+function closeGlobalNotificationModal() {
+  const modal = document.getElementById('global-notifications-modal');
+  if (modal) {
+    modal.style.opacity = '0';
+    if (modal.firstElementChild) modal.firstElementChild.style.transform = 'translateY(20px)';
+    setTimeout(() => { modal.style.display = 'none'; }, 250);
+  }
+}
 
 
 

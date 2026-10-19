@@ -1,11 +1,9 @@
 [build]
-  # When deployed to Netlify, run our generator script to turn your env variables into js/env.js!
   command = "node scripts/generate-env.js"
   publish = "."
 
-[build.environment]
-  # Tell Netlify not to fail the build when it sees public Firebase config strings (like project IDs and auth domains)
-  SECRETS_SCAN_ENABLED = "false"
+[functions]
+  directory = "netlify/functions"
 
 # Rewrite rule for public researcher handle profiles
 [[redirects]]
@@ -13,10 +11,11 @@
   to = "/profile.html?handle=:splat"
   status = 200
 
-# Ensure clean cache headers and security rules
+# Security and caching headers
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
 

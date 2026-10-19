@@ -289,6 +289,23 @@ async function toggleFollow() {
 
     await Promise.all([patchVisited, patchCurrent]);
 
+    if (isFollowing) {
+      const notifUrl = `${base}/users/${visitedUid}/notifications`;
+      const followerName = auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || "A researcher";
+      fetch(notifUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fields: {
+            message: { stringValue: `👥 ${followerName} started following your profile!` },
+            read: { booleanValue: false },
+            link: { stringValue: `account.html?v=3` },
+            timestamp: { stringValue: new Date().toISOString() }
+          }
+        })
+      }).catch(e => console.warn("Notice: could not send follow notification:", e));
+    }
+
   } catch (err) {
     console.error("Error updating follow state:", err);
     showToast("Could not complete this request. Please try again.", "error");
