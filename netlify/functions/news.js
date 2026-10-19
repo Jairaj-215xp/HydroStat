@@ -20,7 +20,7 @@ const CURATED_FALLBACK_NEWS = [
     title: "World's Largest Green Hydrogen Electrolyser Facility Commences Operations",
     date: 'Recent Update',
     desc: 'A massive 260 MW alkaline electrolyser facility has officially launched commercial operations, producing green hydrogen for industrial steel and ammonia manufacturing.',
-    image: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url("assets/hydrogen_plant.png")',
+    image: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url('/assets/hydrogen_plant.png')",
     link: 'https://www.iea.org/reports/global-hydrogen-review-2023'
   },
   {
@@ -29,7 +29,7 @@ const CURATED_FALLBACK_NEWS = [
     title: 'Solid-State Magnesium Hydride: Next-Generation Safe Hydrogen Storage',
     date: 'Concept Study',
     desc: 'Material science researchers demonstrate room-temperature hydrogen desorption in catalyzed magnesium hydride nanostructures, offering up to 7.6 wt% gravimetric density.',
-    image: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url("assets/hydrogen_car.png")',
+    image: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url('/assets/hydrogen_car.png')",
     link: 'https://www.energy.gov/eere/fuelcells/hydrogen-storage'
   },
   {
@@ -38,7 +38,7 @@ const CURATED_FALLBACK_NEWS = [
     title: 'Heavy-Duty Fuel Cell Truck Corridors Expand Across European Freight Routes',
     date: 'Recent Update',
     desc: 'Major logistics consortiums announce the deployment of 40-tonne Class 8 hydrogen fuel cell trucks supported by 700-bar liquid hydrogen refueling infrastructure.',
-    image: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url("assets/hydrogen_car.png")',
+    image: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url('/assets/hydrogen_car.png')",
     link: 'https://www.energy.gov/eere/fuelcells/hydrogen-fuel-basics'
   },
   {
@@ -47,7 +47,7 @@ const CURATED_FALLBACK_NEWS = [
     title: 'Offshore Direct Seawater Electrolysis Powered by Floating Wind Turbines',
     date: 'Concept Study',
     desc: 'Pioneering marine engineering pilots explore direct seawater electrolysis membranes that resist chloride corrosion, eliminating the need for freshwater desalination plants.',
-    image: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url("assets/hydrogen_plant.png")',
+    image: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url('/assets/hydrogen_plant.png')",
     link: 'https://www.nature.com/articles/s41560-022-01126-8'
   },
   {
@@ -56,7 +56,7 @@ const CURATED_FALLBACK_NEWS = [
     title: 'Aviation Turbofan Ground Test Demonstrates 100% Direct Hydrogen Combustion',
     date: 'Recent Update',
     desc: 'Aerospace engineers complete successful full-thrust ground runs of a retrofitted turbofan engine burning cryogenic liquid hydrogen with zero carbon dioxide emissions.',
-    image: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url("assets/hydrogen_car.png")',
+    image: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url('/assets/hydrogen_car.png')",
     link: 'https://www.aerospace-technology.com/'
   },
   {
@@ -65,7 +65,7 @@ const CURATED_FALLBACK_NEWS = [
     title: 'Engineered Cyanobacteria Pathways for Continuous Photobiological Hydrogen Production',
     date: 'Concept Study',
     desc: 'Synthetic biologists engineer oxygen-tolerant hydrogenase enzymes in cyanobacteria strains to enable continuous solar-driven photobiological water-splitting.',
-    image: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url("assets/hydrogen_plant.png")',
+    image: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.85)), url('/assets/hydrogen_plant.png')",
     link: 'https://www.frontiersin.org/journals/microbiology'
   }
 ];

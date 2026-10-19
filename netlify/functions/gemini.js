@@ -9,10 +9,10 @@
 const crypto = require('crypto');
 
 // Configuration defaults with server-side environment overrides
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || '';
-const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'hydrohub-215';
+const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
+const GEMINI_MODEL = (process.env.GEMINI_MODEL || 'gemini-2.5-flash').trim();
+const FIREBASE_API_KEY = (process.env.FIREBASE_API_KEY || '').trim();
+const FIREBASE_PROJECT_ID = (process.env.FIREBASE_PROJECT_ID || 'hydrohub-215').trim();
 
 const DAILY_SITE_CAP = parseInt(process.env.DAILY_SITE_CAP, 10) || 500;
 const USER_RATE_LIMIT_PER_MIN = parseInt(process.env.USER_RATE_LIMIT_PER_MIN, 10) || 15;
@@ -375,20 +375,36 @@ exports.handler = async function (event, context) {
     };
   }
 
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const primaryModel = GEMINI_MODEL;
+  const fallbackModel = 'gemini-1.5-flash';
 
-  // Call Gemini with timeout
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  async function executeGeminiRequest(modelName) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(geminiPayload),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return res;
+    } catch (e) {
+      clearTimeout(timeoutId);
+      throw e;
+    }
+  }
 
   try {
-    const geminiRes = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(geminiPayload),
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
+    let geminiRes = await executeGeminiRequest(primaryModel);
+
+    // If primary model returns 404 (model not found) or 400, retry with fallback model if different
+    if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 400) && primaryModel !== fallbackModel) {
+      console.warn(`[Hydrobot Model Fallback] Model ${primaryModel} returned ${geminiRes.status}. Retrying with ${fallbackModel}...`);
+      geminiRes = await executeGeminiRequest(fallbackModel);
+    }
 
     const latencyMs = Date.now() - startTime;
 
@@ -406,12 +422,27 @@ exports.handler = async function (event, context) {
 
     if (!geminiRes.ok) {
       const errStatus = geminiRes.status;
-      console.error(`[Hydrobot Upstream Error] Status: ${errStatus}. Latency: ${latencyMs}ms`);
+      let errDetail = '';
+      try {
+        const errJson = await geminiRes.json();
+        errDetail = errJson.error?.message || JSON.stringify(errJson);
+      } catch (e) {
+        errDetail = await geminiRes.text().catch(() => '');
+      }
+      console.error(`[Hydrobot Upstream Error] Status: ${errStatus}. Details: ${errDetail}. Latency: ${latencyMs}ms`);
+
+      let userFacingError = 'Unable to communicate with the AI reasoning service. Please try again shortly.';
+      if (errStatus === 401 || errStatus === 403) {
+        userFacingError = 'AI authorization failed. Please check that GEMINI_API_KEY in your Netlify environment variables is valid and active.';
+      } else if (errStatus === 404) {
+        userFacingError = 'The AI reasoning model is temporarily unavailable. Please check your model configuration.';
+      }
+
       return {
         statusCode: 502,
         headers,
         body: JSON.stringify({
-          error: 'Unable to communicate with the AI reasoning service. Please try again shortly.'
+          error: userFacingError
         })
       };
     }

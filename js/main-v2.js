@@ -110,37 +110,37 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             id: 1, type: 'news', title: 'World\'s Largest Green Hydrogen Plant Opens',
             date: 'Today', desc: 'A massive 250MW electrolyser facility has officially commenced operations...',
-            image: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("assets/hydrogen_plant.png")',
+            image: "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('/assets/hydrogen_plant.png')",
             link: '#'
         },
         {
             id: 2, type: 'ideas', title: 'Solid-State Hydrogen Storage: A Game Changer?',
             date: 'Today', desc: 'Researchers have published a new concept utilizing magnesium hydride to store hydrogen safely...',
-            image: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("assets/hydrogen_car.png")',
+            image: "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('/assets/hydrogen_car.png')",
             link: '#'
         },
         {
             id: 3, type: 'news', title: 'Automakers Commit to Fuel Cell Truck Fleets',
             date: 'Yesterday', desc: 'A consortium of five leading truck manufacturers has signed an accord to transition...',
-            image: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("assets/hydrogen_car.png")',
+            image: "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('/assets/hydrogen_car.png')",
             link: '#'
         },
         {
             id: 4, type: 'ideas', title: 'Ocean-Based Electrolysis: Harvesting Fuel at Sea',
             date: 'Yesterday', desc: 'A striking new concept proposes floating offshore platforms that use wave energy...',
-            image: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("assets/hydrogen_plant.png")',
+            image: "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('/assets/hydrogen_plant.png')",
             link: '#'
         },
         {
             id: 5, type: 'news', title: 'Aviation Giant Tests Liquid Hydrogen Engine',
             date: '2 Days Ago', desc: 'A modified commercial jet engine ran for 3 hours solely on liquid hydrogen...',
-            image: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("assets/hydrogen_car.png")',
+            image: "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('/assets/hydrogen_car.png')",
             link: '#'
         },
         {
             id: 6, type: 'ideas', title: 'Photosynthetic Bacteria: Bio-Hydrogen Production',
             date: '3 Days Ago', desc: 'Synthetic biologists are modifying cyanobacteria strains to continuously excrete hydrogen...',
-            image: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("assets/hydrogen_plant.png")',
+            image: "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('/assets/hydrogen_plant.png')",
             link: '#'
         }
     ];
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const safeLink = (item.link && item.link.startsWith('http')) ? item.link : '#';
             
             card.innerHTML = `
-                <div class="news-image" style="background-image: ${item.image}">
+                <div class="news-image">
                     <span class="news-tag">${safeTag}</span>
                 </div>
                 <div class="news-content">
@@ -224,6 +224,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="read-more">Read Full Story <span>&rarr;</span></a>
                 </div>
             `;
+            
+            const imgEl = card.querySelector('.news-image');
+            if (imgEl && item.image) {
+                let cleanBg = item.image.replace(/"/g, "'");
+                if (cleanBg.includes('assets/') && !cleanBg.includes('/assets/')) {
+                    cleanBg = cleanBg.replace('assets/', '/assets/');
+                }
+                imgEl.style.backgroundImage = cleanBg;
+            }
             
             newsContainer.appendChild(card);
             
